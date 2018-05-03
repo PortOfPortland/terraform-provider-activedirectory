@@ -39,8 +39,8 @@ func Provider() terraform.ResourceProvider {
 			"default_computer_container": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DEFAULT_COMPUTER_CONTAINER", "Computers"),
-				Description: "The default computer container to move objects to on a delete",
+				DefaultFunc: schema.EnvDefaultFunc("DEFAULT_COMPUTER_CONTAINER", nil),
+				Description: "The default computer container to move objects to on a delete - Defaults to '(Get-ADDomain | select computerscont*)'",
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -68,20 +68,23 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	usessl := d.Get("usessl").(string)
+	default_computer_container := d.Get("default_computer_container").(string)
 
 	client := ActiveDirectoryClient {
-		username:	username,
-		password:	password,
-		server:		server,
-		usessl:		usessl,
+		username:			username,
+		password:			password,
+		server:				server,
+		usessl:				usessl,
+		default_computer_container:	default_computer_container,
 	}
 
 	return &client, nil
 }
 
 type ActiveDirectoryClient struct {
-	username	string
-	password	string
-	server		string
-	usessl		string
+	username			string
+	password			string
+	server				string
+	usessl				string
+	default_computer_container	string
 }

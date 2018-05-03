@@ -6,7 +6,14 @@ The provider uses the [github.com/gorillalabs/go-powershell/backend](github.com/
 
 # Using the Provider
 
-### Example
+### Example - Moving an Object to an OU/Container
+
+This doesn't perfectly map to the CRUD workflow, so in general, it works like this:
+
+* CREATE - Moves a resource to the correct OU/Container
+* READ - Verifies whether/not a resource is in the correct OU/Container
+* UPDATE - Calls the create function to move the resource to the correct OU/Container
+* DELETE - Moves the resource to either the default computers container (via Get-ADDomain | select computerscont*) or the specified default_computer_container property on the provider
 
 ```hcl
 # configure the provider
@@ -26,9 +33,10 @@ provider "activedirectory" {
   username = "${var.username}"
   password = "${var.password}"
   usessl = true
+  default_computer_container = "Computers,OU=Computers,OU=AD,DC=mydomain,DC=com" #optional
 }
 
-#move an object to an ou
+#move an object to an ou.container
 resource "activedirectory_ouMapping" "test1" {
   object_name = "MYVM1"
   object_class = "Computer"
