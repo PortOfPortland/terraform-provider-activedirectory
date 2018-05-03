@@ -57,3 +57,10 @@ resource "activedirectory_groupMembership" "test1" {
   group_name = "A really cool group"
 }
 ```
+
+# Building
+0. Make sure you have $GOPATH set ($env:GOPATH='c:\wip\go' on Windows, etc)
+1. go get github.com\portofportland\terraform-provider-activedirectory
+2. cd github.com\portofportland\terraform-provider-activedirectory
+3. go build
+
