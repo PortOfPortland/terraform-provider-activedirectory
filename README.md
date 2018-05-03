@@ -50,7 +50,7 @@ resource "activedirectory_ouMapping" "test1" {
 
 ### Example - Adding Objects to an AD Group
 
-```
+```hcl
 resource "activedirectory_groupMembership" "test1" {
   object_name = "MVM1"
   object_class = "Computer"
