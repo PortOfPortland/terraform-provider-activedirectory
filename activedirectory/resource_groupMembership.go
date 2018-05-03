@@ -2,8 +2,8 @@ package activedirectory
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/portofportland/goWinRM"
 
-	//"errors"
 	"strings"
 )
 
@@ -44,7 +44,7 @@ func resourcegroupMembershipCreate(d *schema.ResourceData, m interface{}) error 
 	var id string = object_name + "_" + object_class + "_" + group_name
 
 	var psCommand string = "$object = Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; Add-ADGroupMember -Identity '" + group_name + "' -Members $object.DistinguishedName -Confirm:$false"
-	_, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
+	_, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
 		return err
@@ -64,7 +64,7 @@ func resourcegroupMembershipRead(d *schema.ResourceData, m interface{}) error {
 	group_name := d.Get("group_name").(string)
 
         var psCommand string = "$object = Get-ADGroupMember -Identity '" + group_name + "' | Where-Object {$_.Name -eq '" + object_name + "' -AND $_.objectClass -eq '" + object_class + "'}; if (!$object) { Write-Host 'TERRAFORM_NOT_FOUND' }"
-	stdout, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
+	stdout, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
 		return err
@@ -90,7 +90,7 @@ func resourcegroupMembershipDelete(d *schema.ResourceData, m interface{}) error 
 	group_name := d.Get("group_name").(string)
 
 	var psCommand string = "$object = Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; Remove-ADGroupMember -Identity '" + group_name + "' -Members $object.DistinguishedName -Confirm:$false"
-	_, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
+	_, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
 		return err
