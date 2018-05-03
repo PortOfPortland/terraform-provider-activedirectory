@@ -45,6 +45,7 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"activedirectory_ouMapping": resourceOUMapping(),
+			"activedirectory_groupMembership": resourcegroupMembership(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-func resourceOUMapping() *schema.Resource {
+func resourcegroupMembership() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceOUMappingCreate,
-		Read:   resourceOUMappingRead,
-		Delete: resourceOUMappingDelete,
-		Update: resourceOUMappingCreate,
+		Create: resourcegroupMembershipCreate,
+		Read:   resourcegroupMembershipRead,
+		Delete: resourcegroupMembershipDelete,
+		Update: resourcegroupMembershipCreate,
 
 		Schema: map[string]*schema.Schema{
 			"object_name": &schema.Schema{
@@ -25,7 +25,7 @@ func resourceOUMapping() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"target_path": &schema.Schema{
+			"group_name": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -33,17 +33,17 @@ func resourceOUMapping() *schema.Resource {
 	}
 }
 
-func resourceOUMappingCreate(d *schema.ResourceData, m interface{}) error {
+func resourcegroupMembershipCreate(d *schema.ResourceData, m interface{}) error {
 	//convert the interface so we can use the variables like username, etc
 	client := m.(*ActiveDirectoryClient)
 
 	object_name := d.Get("object_name").(string)
 	object_class := d.Get("object_class").(string)
-	target_path := d.Get("target_path").(string)
+	group_name := d.Get("group_name").(string)
 
-	var id string = object_name + "_" + object_class + "_" + target_path
+	var id string = object_name + "_" + object_class + "_" + group_name
 
-	var psCommand string = "Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath '" + target_path + "' -Confirm:$false"
+	var psCommand string = "$object = Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; Add-ADGroupMember -Identity '" + group_name + "' -Members $object.DistinguishedName -Confirm:$false"
 	_, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
@@ -55,15 +55,15 @@ func resourceOUMappingCreate(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceOUMappingRead(d *schema.ResourceData, m interface{}) error {
+func resourcegroupMembershipRead(d *schema.ResourceData, m interface{}) error {
 	//convert the interface so we can use the variables like username, etc
 	client := m.(*ActiveDirectoryClient)
 
 	object_name := d.Get("object_name").(string)
 	object_class := d.Get("object_class").(string)
-	target_path := d.Get("target_path").(string)
+	group_name := d.Get("group_name").(string)
 
-        var psCommand string = "$object = Get-ADObject -SearchBase '" + target_path + "' -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; if (!$object) { Write-Host 'TERRAFORM_NOT_FOUND' }"
+        var psCommand string = "$object = Get-ADGroupMember -Identity '" + group_name + "' | Where-Object {$_.Name -eq '" + object_name + "' -AND $_.objectClass -eq '" + object_class + "'}; if (!$object) { Write-Host 'TERRAFORM_NOT_FOUND' }"
 	stdout, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
@@ -76,26 +76,20 @@ func resourceOUMappingRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	var id string = object_name + "_" + object_class + "_" + target_path
-	d.Set("address", id)
+	var id string = object_name + "_" + object_class + "_" + group_name
+	d.SetId(id)
 	return nil
 }
 
-func resourceOUMappingDelete(d *schema.ResourceData, m interface{}) error {
+func resourcegroupMembershipDelete(d *schema.ResourceData, m interface{}) error {
 	//convert the interface so we can use the variables like username, etc
 	client := m.(*ActiveDirectoryClient)
 
 	object_name := d.Get("object_name").(string)
 	object_class := d.Get("object_class").(string)
+	group_name := d.Get("group_name").(string)
 
-	var psCommand string
-	if (client.default_computer_container == "") {
-		//move the computer to the default computer containers for the domain - Get-ADDomain | select computerscont*
-		psCommand = "$container = Get-ADDomain | select computerscont*; Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath $container.ComputersContainer -Confirm:$false"
-	} else {
-		psCommand = "$container = Get-ADObject '" + client.default_computer_container + "'; Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath $container.DistinguishedName -Confirm:$false"
-	}
-
+	var psCommand string = "$object = Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; Remove-ADGroupMember -Identity '" + group_name + "' -Members $object.DistinguishedName -Confirm:$false"
 	_, err := runWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl)
 	if err != nil {
 		//something bad happened
