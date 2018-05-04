@@ -26,7 +26,7 @@ provider "activedirectory" {
   username = "${var.username}"
   password = "${var.password}"
   usessl = true
-  default_computer_container = "Computers,OU=Computers,OU=AD,DC=mydomain,DC=com" #optional
+  default_computer_container = "CN=Computers,DC=mydomain,DC=com" #optional
 }
 ```
 
