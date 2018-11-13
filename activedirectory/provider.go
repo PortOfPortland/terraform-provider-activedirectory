@@ -36,6 +36,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("USESSL", true),
 				Description: "Whether or not to use HTTPS to connect to WinRM",
 			},
+			"usessh": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("USESSH", true),
+				Description: "Whether or not to use SSH to connect to WinRM",
+			},
 			"default_computer_container": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -69,6 +75,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	usessl := d.Get("usessl").(string)
+	usessh := d.Get("usessh").(string)
 	default_computer_container := d.Get("default_computer_container").(string)
 
 	client := ActiveDirectoryClient {
@@ -76,6 +83,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		password:			password,
 		server:				server,
 		usessl:				usessl,
+		usessh:				usessh,
 		default_computer_container:	default_computer_container,
 	}
 
@@ -87,5 +95,6 @@ type ActiveDirectoryClient struct {
 	password			string
 	server				string
 	usessl				string
+	usessh				string
 	default_computer_container	string
 }
