@@ -20,7 +20,7 @@ func Provider() terraform.ResourceProvider {
 			},
 			"password": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("PASSWORD", nil),
 				Description: "The password to connect to AD.",
 			},
@@ -33,13 +33,13 @@ func Provider() terraform.ResourceProvider {
 			"usessl": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("USESSL", true),
+				DefaultFunc: schema.EnvDefaultFunc("USESSL", false),
 				Description: "Whether or not to use HTTPS to connect to WinRM",
 			},
 			"usessh": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("USESSH", true),
+				DefaultFunc: schema.EnvDefaultFunc("USESSH", false),
 				Description: "Whether or not to use SSH to connect to WinRM",
 			},
 			"default_computer_container": &schema.Schema{
