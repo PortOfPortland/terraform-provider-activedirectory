@@ -2,9 +2,10 @@ package activedirectory
 
 import (
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/portofportland/goWinRM"
+	"github.com/portofportland/goPSRemoting"
 
 	"strings"
+	"fmt"
 )
 
 func resourceOUMapping() *schema.Resource {
@@ -43,12 +44,15 @@ func resourceOUMappingCreate(d *schema.ResourceData, m interface{}) error {
 
 	var id string = object_name + "_" + object_class + "_" + target_path
 
-	var psCommand string = "Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath '" + target_path + "' -Confirm:$false"
-	_, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
+	var psCommand string = "Get-ADObject -Filter {(name -eq \\\"" + object_name + "\\\") -AND (ObjectClass -eq \\\"" + object_class + "\\\")} | Move-ADObject -TargetPath \\\"" + target_path + "\\\" -Confirm:$false"
+	_, err := goPSRemoting.RunPowershellCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
 	if err != nil {
 		//something bad happened
 		return err
 	}
+
+	fmt.Println("THERE WAS AN ERROR")
+	fmt.Println("THERE IS SOME OUT STUFF")
 
 	d.SetId(id)
 
@@ -63,8 +67,8 @@ func resourceOUMappingRead(d *schema.ResourceData, m interface{}) error {
 	object_class := d.Get("object_class").(string)
 	target_path := d.Get("target_path").(string)
 
-        var psCommand string = "$object = Get-ADObject -SearchBase '" + target_path + "' -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')}; if (!$object) { Write-Host 'TERRAFORM_NOT_FOUND' }"
-	stdout, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
+        var psCommand string = "$object = Get-ADObject -SearchBase \\\"" + target_path + "\\\" -Filter {(name -eq \\\"" + object_name + "\\\") -AND (ObjectClass -eq \\\"" + object_class + "\\\")}; if (!$object) { Write-Host 'TERRAFORM_NOT_FOUND' }"
+	stdout, err := goPSRemoting.RunPowershellCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
 	if err != nil {
 		//something bad happened
 		return err
@@ -91,12 +95,12 @@ func resourceOUMappingDelete(d *schema.ResourceData, m interface{}) error {
 	var psCommand string
 	if (client.default_computer_container == "") {
 		//move the computer to the default computer containers for the domain - Get-ADDomain | select computerscont*
-		psCommand = "$container = Get-ADDomain | select computerscont*; Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath $container.ComputersContainer -Confirm:$false"
+		psCommand = "$container = Get-ADDomain | select computerscont*; Get-ADObject -Filter {(name -eq \\\"" + object_name + "\\\") -AND (ObjectClass -eq \\\"" + object_class + "\\\")} | Move-ADObject -TargetPath $container.ComputersContainer -Confirm:$false"
 	} else {
-		psCommand = "$container = Get-ADObject '" + client.default_computer_container + "'; Get-ADObject -Filter {(name -eq '" + object_name + "') -AND (ObjectClass -eq '" + object_class + "')} | Move-ADObject -TargetPath $container.DistinguishedName -Confirm:$false"
+		psCommand = "$container = Get-ADObject \\\"" + client.default_computer_container + "\\\"; Get-ADObject -Filter {(name -eq \\\"" + object_name + "\\\") -AND (ObjectClass -eq \\\"" + object_class + "\\\")} | Move-ADObject -TargetPath $container.DistinguishedName -Confirm:$false"
 	}
 
-	_, err := goWinRM.RunWinRMCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
+	_, err := goPSRemoting.RunPowershellCommand(client.username, client.password, client.server, psCommand, client.usessl, client.usessh)
 	if err != nil {
 		//something bad happened
 		return err
