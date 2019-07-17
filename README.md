@@ -81,5 +81,6 @@ go mod vendor
 7. build the module
 ```
 go build
+GOOS=windows GOARCH=386 go build -o terraform-provider-activedirectory.exe
 ```
 
