@@ -1,1 +1,3 @@
 *.exe
+vendor
+terraform-provider-activedirectory
