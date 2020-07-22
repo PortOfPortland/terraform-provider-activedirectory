@@ -1,3 +1,5 @@
 *.exe
 vendor
 terraform-provider-activedirectory
+dist
+bin
